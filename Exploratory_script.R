@@ -12,7 +12,12 @@ library(estimatr)
 library(fixest)
 
 #loads the data
-clean_data = read_csv("clean_data.csv")
+# If cvs file:  clean_data = read_csv("clean_data.csv")
+
+# If RData file
+
+load("clean_data.RData")
+
 
 #Displays statistical summary of the data
 skim(clean_data)

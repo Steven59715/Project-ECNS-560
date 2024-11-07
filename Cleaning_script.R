@@ -12,9 +12,15 @@ library(sf)
 library(estimatr)
 library(fixest)
 
+# Simon working directory:   "G:/My Drive/In Course Project/"
+
+# Steve working directory:  "C:/Users/Owner/Documents/ECNS 560/Project/R Files In Process/"
+
+# set working directory before continuing!
+
 #Immigration Data (Inflow Data)
 #2019/2020
-data2=read_csv("G:/My Drive/In Course Project/countyinflow1920.csv")
+data2=read_csv("countyinflow1920.csv")
 inflow_1920 = data2[grep("Total Migration-US and Foreign",data2$y1_countyname), ]
 inflow_1920 = inflow_1920 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -26,7 +32,7 @@ inflow_1920=inflow_1920|>
 colnames(inflow_1920) = c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2018/2019
-data3=read_csv("G:/My Drive/In Course Project/countyinflow1819.csv")
+data3=read_csv("countyinflow1819.csv")
 inflow_1819 = data3[grep("Total Migration-US and Foreign",data3$y1_countyname), ]
 inflow_1819 = inflow_1819 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -38,7 +44,7 @@ inflow_1819=inflow_1819|>
 colnames(inflow_1819) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2017/2018
-data4=read_csv("G:/My Drive/In Course Project/countyinflow1718.csv")
+data4=read_csv("countyinflow1718.csv")
 inflow_1718 = data4[grep("Total Migration-US and Foreign",data4$y1_countyname), ]
 inflow_1718 = inflow_1718 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -50,7 +56,7 @@ inflow_1718=inflow_1718|>
 colnames(inflow_1718) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2016/2017
-data5=read_csv("G:/My Drive/In Course Project/countyinflow1617.csv")
+data5=read_csv("countyinflow1617.csv")
 inflow_1617 = data5[grep("Total Migration-US and Foreign",data5$y1_countyname), ]
 inflow_1617 = inflow_1617 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -62,7 +68,7 @@ inflow_1617=inflow_1617|>
 colnames(inflow_1617) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2015/2016
-data6=read_csv("G:/My Drive/In Course Project/countyinflow1516.csv")
+data6=read_csv("countyinflow1516.csv")
 inflow_1516 = data6[grep("Total Migration-US and Foreign",data6$y1_countyname), ]
 inflow_1516 = inflow_1516 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -74,7 +80,7 @@ inflow_1516=inflow_1516|>
 colnames(inflow_1516) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2014/2015
-data7=read_csv("G:/My Drive/In Course Project/countyinflow1415.csv")
+data7=read_csv("countyinflow1415.csv")
 inflow_1415 = data7[grep("Total Migration-US and Foreign",data7$y1_countyname), ]
 inflow_1415 = inflow_1415 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -86,7 +92,7 @@ inflow_1415=inflow_1415|>
 colnames(inflow_1415) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2013/2014
-data8=read_csv("G:/My Drive/In Course Project/countyinflow1314.csv")
+data8=read_csv("countyinflow1314.csv")
 inflow_1314 = data8[grep("Total Migration-US and Foreign",data8$y1_countyname), ]
 inflow_1314 = inflow_1314 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -98,7 +104,7 @@ inflow_1314=inflow_1314|>
 colnames(inflow_1314) =  c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUNTYFIPS","Y1_STATE","Y1_COUNTYNAME","NO_OF_RETURN(INFLOW)","NO_OF_INDIVIDUALS(INFLOW)","AGI_INFLOW","FIPS" )
 
 #2012/2013
-data9=read_csv("G:/My Drive/In Course Project/countyinflow1213.csv")
+data9=read_csv("countyinflow1213.csv")
 inflow_1213 = data9[grep("Total Migration-US and Foreign",data9$y1_countyname), ]
 inflow_1213 = inflow_1213 |>
   mutate(FIPS=paste(y2_statefips,y2_countyfips,sep = ""))
@@ -111,7 +117,7 @@ colnames(inflow_1213) = c("Y2_STATEFIPS","Y2_COUNTYFIPS","Y1_STATEFIPS","Y1_COUN
 
 #-----------------------------------
 #Housing Prices data
-new_data_1=read_csv("G:/My Drive/In Course Project/UADAggs_county_v3_2.csv")
+new_data_1=read_csv("UADAggs_county_v3_2.csv")
 
 filtered_data <- new_data_1 |>
   #keeps only observation of the fifth quarter and purchase and drops the 2023 observations.  
@@ -204,4 +210,4 @@ skim(main_data)
 clean_data = main_data[!is.na(main_data$VALUE),]
 
 #Saving the data
-write.csv(clean_data, "clean_data.csv", row.names = FALSE) 
+save(clean_data, file =  "clean_data.RData")
