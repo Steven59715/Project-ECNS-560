@@ -22,7 +22,8 @@ library(fixest)
 
 Loading the data 
 ```{r}
-clean_data = read_csv("clean_data.csv")
+# working directory needs to be set to the GitHub folder for the project
+load("Cleaned Data/clean_data.RData")
 ```
 
 
@@ -34,23 +35,24 @@ summary(clean_data)
 
 ```{r}
 skim(clean_data)
+
 ```
 
 Exploratory Analysis
 ```{r}
 # Create a histogram of the 'VALUE' column in the 'clean_data' data 
 ggplot(clean_data,aes(x=VALUE))+ 
-  geom_histogram(boundary=0,bindwith = 2)
+  geom_histogram(boundary=0,binwidth = 1000)
 ```
 This shows the distribution of value(housing prices) variable, which is highly right-skewed. Most of the data are concentrated on the left side of the distribution. This points out that significant portion of the values in the dataset are small in value with few proportion been large.
 
 ```{r}
 # Create a histogram of the 'NO_OF_INDIVIDUALS(INFLOW)' column in the 'clean_data' data frame
 ggplot(clean_data,aes(x=`NO_OF_INDIVIDUALS(INFLOW)`))+ 
-  geom_histogram(boundary=0,bindwith = 2)
+  geom_histogram(boundary=0,binwidth = 2500)
 ```
 
-This shows the distribution of number of individual(inflow) i.e. migrantion variable, which highly right-skewed. Most of the data are concentrated on the left side of the distribution. 
+This shows the distribution of number of individual(inflow) i.e. migration variable, which highly right-skewed. Most of the data are concentrated on the left side of the distribution. 
 
 
 
@@ -67,13 +69,14 @@ Creating the histogram graphs and other exploratory analysis using the log varia
 ```{r}
 # Create a histogram of the 'LOG_VALUE' column in the 'clean_data' data frame
 ggplot(clean_data,aes(x=LOG_VALUE))+ 
-  geom_histogram(boundary=0,bindwith = 0.5)
+  geom_histogram(boundary=0,binwidth = 0.5)
 ```
 
 ```{r}
 # Create a histogram of the 'LOG_MIGRATION' column in the 'clean_data' data frame
+
 ggplot(clean_data,aes(x=LOG_MIGRATION))+ 
-  geom_histogram(boundary=0,bindwith = 0.5)
+  geom_histogram(boundary=0,binwidth = 0.5)
 ```
 
 Finding the relationship between migration and housing prices
