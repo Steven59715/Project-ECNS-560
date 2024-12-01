@@ -1,0 +1,525 @@
+---
+title: "Project Report"
+author: "Simon Antwi and Steven Durtka"
+date: "2024-12-5"
+output: html_document
+---
+
+###Topic
+
+The impact of immigration on housing prices in the US
+
+###Motivation
+
+Immigration entails the movement of people from one country to another to settle there permanently or temporarily. However, in our context, we will also be taking into consideration intra-immigration (within the country).
+Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or for educational purposes, inform immigration decisions for person moving between nations.  Family, employment, educational pursuits, or other interests are some underlying reasons people may choose to relocate within the U.S.
+Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums.
+Immigration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of immigrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
+Why it Matters.
+To begin with, it is crucial for policymakers as it assists them in making informed decisions regarding immigration, with which they can help steady the housing prices to ensure affordability and a high standard of living.
+Furthermore, it can facilitate the establishment of a stable market, as both homeowners and renters have a reasonable insight into the fluctuations in the housing market.
+Lastly, it can also serve as a guide for urban planning and infrastructure planning and development.
+
+###Research Questions
+
+1. What is the relationship between migration and housing prices. (Descriptive, Predictive)
+
+2. The distribution patterns of migration and housing prices across states and time. (Descriptive)
+
+3. The impact of urbanization driven by migration on housing prices. (Descriptive)
+
+4. How does the effect on housing prices vary according to counties? (Descriptive)
+
+###Data Description
+
+####Migration data sets. 
+
+(https://www.irs.gov/statistics/soi-tax-stats-migration-data-2013-2020)
+The data was sourced from the Internal Revenue Service (IRS). The migration is data based on year-to-year address changes reported on individual income tax returns filed with the IRS. We use county-level data from 2013 to 2020. The migration data consists of both inflows and outflows people within and outside the country.
+N1 is the number of returns filed, approximating the number of migrated households.
+N2: number of personal exemptions claimed. Which approximates the number of individuals.
+Agi is the aggregate migration flows at the state level, which are determined by the size of adjusted gross income (AGI) and the age of the primary taxpayer. It is reported in thousands of dollars.
+
+####Housing Prices data set
+
+(https://www.fhfa.gov/sites/default/files/2024-09/UADAggs_county_v3_2.zip)
+The Federal Housing Finance Agency (FHFA) provided the housing price data set. We used the uniform appraisal dataset—aggregate statistics on appraisal—from the FHFA. An appraisal is an assessment of a property's value performed by a certified appraiser.
+ It is quarterly data. The data spans from 2021- to 2022-year period.
+Value is the worth of the statistical series.
+Quarter – 1 = January – March
+2 = April-June
+3 = July-September.
+4 = October-December
+5 = all four quarters (yearly)
+NB: For this research purpose we are using 5 which represent annual housing value.
+Geoname is the formal name of a geographic unit (counties).
+
+####Prime Interest Rates
+
+The control variable is interest rate from 2013 to 2020.  The interest rates were scraped from the JP Morgan Bank website and averaged by year.
+
+How Migration data and Housing data are related.
+There is a close relationship between migration data and the housing data set. Migration patterns can directly influence the demand for housing. Areas facing elevated levels of immigration may see increased development to meet demand. This can affect housing prices depending on how fast supply can catch up.
+
+The two data sets were merged by year and FIPS code.
+
+###Data Processing
+
+####Migration Data
+
+There were no missing values.  Column names were changed to be more descriptive.  Only county level in-flow data was kept in the data set.  Each year has its own file.
+
+Because the migration data is based on tax return filings, it may under represent the actual migration into the county because there may be some people move in and out that do not file a tax return.
+
+####Housing Prices Data
+
+We had no missing values, however some housing prices were "suppressed" by the Federal Housing  Finance Agency if there were less than five values for a county.  However, we used all data in the data set for housing values from purchase prices and not refinance appraisals since our focus is on the housing market.  Only data for the fifty states and the District of Columbia were included in the final data set. 
+
+Housing price data was subset by year, and each year joined to each year's migration data.  All the years were bound into one data frame for analysis, and the average prime interest rate was added as a separate column.
+
+Both migration data and housing price data were log transformed due to their distributions being skewed.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, results = 'hide')
+```
+
+
+```{r}
+
+#load libraries used
+
+library(tidyverse)
+library(stringr)
+library(readr)
+library(readxl)
+library(dplyr)
+library(skimr)
+library(binsreg)
+library(splines)
+library(sf)
+library(estimatr)
+library(fixest)
+```
+
+
+```{r}
+#Loading the data 
+# working directory needs to be set to the GitHub folder for the project
+load("Cleaned Data/clean_data.RData")
+```
+
+
+
+```{r}
+#statistical summary of the data set
+summary(clean_data)
+```
+
+
+```{r}
+skim(clean_data)
+
+```
+
+###Exploratory Analysis
+
+```{r, fig.keep = "none"}
+# Create a histogram of the 'VALUE' column in the 'clean_data' data 
+ggplot(clean_data,aes(x=VALUE))+ 
+  geom_histogram(boundary=0,binwidth = 1000)
+
+# This shows the distribution of value(housing prices) variable, which is highly right-skewed. Most of the data are concentrated on the left side of the distribution. This points out that significant portion of the values in the dataset are small in value with few proportion been large.
+```
+
+
+```{r, fig.keep = "none"}
+# Create a histogram of the 'NO_OF_INDIVIDUALS(INFLOW)' column in the 'clean_data' data frame
+ggplot(clean_data,aes(x=`NO_OF_INDIVIDUALS(INFLOW)`))+ 
+  geom_histogram(boundary=0,binwidth = 2500)
+
+#This shows the distribution of number of individual(inflow) i.e. migration variable, which highly right-skewed. Most of the data are concentrated on the left side of the distribution. 
+```
+
+
+```{r, fig.keep = "none"}
+# Apply log transformation to VALUE and NO_OF_INDIVIDUALS(INFLOW) to create new log-transformed variables
+clean_data$LOG_VALUE = log(clean_data$VALUE + 1)
+clean_data$LOG_MIGRATION = log(clean_data$`NO_OF_INDIVIDUALS(INFLOW)` + 1)
+```
+
+
+```{r, fig.keep = "none"}
+#Creating the histogram graphs and other exploratory analysis using the log variables that we have created through transformation
+# Create a histogram of the 'LOG_VALUE' column in the 'clean_data' data frame
+ggplot(clean_data,aes(x=LOG_VALUE))+ 
+  geom_histogram(boundary=0,binwidth = 0.5)
+```
+
+```{r, fig.keep = "none"}
+# Create a histogram of the 'LOG_MIGRATION' column in the 'clean_data' data frame
+
+ggplot(clean_data,aes(x=LOG_MIGRATION))+ 
+  geom_histogram(boundary=0,binwidth = 0.5)
+```
+
+####Finding 1: The relationship between migration and housing prices
+```{r}
+# Create a scatter plot of LOG_MIGRATION vs. LOG_VALUE with a smoothing line
+ggplot(clean_data, aes(x=LOG_MIGRATION, y =LOG_VALUE)) +
+# Add points with low transparent  
+  geom_point(alpha = 0.1)+
+  labs(title = "Immigration and Housing Prices Relationship", x="Migration (Log Transformed)", y = "Housing Prices (Log Transformed)") +
+# Add a smooth line to show trend  
+  geom_smooth()
+```
+
+There is a clear positive non-linear relationship (upward sloping pattern) between number of individuals inflow (migrants) and housing prices. This indicates as the number of migrants increases, housing prices also tends to increase. The points are tightly clustered around a linear trend suggesting a high correlation.
+
+
+```{r}
+#Generate a binned scatter plot of log-transformed VALUE and log-transformed NO_OF_INDIVIDUALS(INFLOW)
+binsreg(log(clean_data$VALUE),log(clean_data$`NO_OF_INDIVIDUALS(INFLOW)`))
+```
+There is an overall positive relationship between immigration and housing prices, as indicated by the upward trend. As the NO_OF_INDIVIDUALS(INFLOW) increases, VALUE also tends to increase, suggesting a direct association(correlation) between these two variables. This also affirms the relationship between the variables by the scatter graph even though this show a non - linear relationship
+
+Using a local regression 
+```{r}
+# Create a scatter plot with a smooth trend line using ggplot with clean_data data set, mapping 'NO_OF_INDIVIDUAL(INFLOW)' to x-axis and 'VALUE' to y-axis
+ggplot(clean_data,aes(x=LOG_MIGRATION,y= LOG_VALUE)) +
+  geom_point(alpha=0.3, size=1.5)+
+# Add a smooth line using LOESS smoothing with linear fitting  
+  geom_smooth(method = "loess")
+```
+The graph shows a positive relationship (upward trend) between number of individuals inflow (migration) and housing prices, signifying that when migration(inflow) increases housing prices.The relationship is not a linear one but due to the smoothness some of the variations are been averaged out hence we do not have enough information about some key variations.
+
+
+creating a bin scatter
+```{r}
+#  Create 50 bins based on the 'NO_OF_INDIVIDUALS(INFLOW)' variable and calculate binned means
+clean_data =clean_data|>
+  mutate(INDIVIDUAL_bins=factor(ntile(LOG_MIGRATION, 50)))
+
+# Group the data by the created bins and calculate the average 'NO_OF_INDIVIDUALS' and 'VALUE' within each bin
+binned_data = clean_data |>
+  group_by(INDIVIDUAL_bins) |>
+  # Calculate the mean 'VALUE' for each bin, ignoring missing values
+  mutate(VALUE_binned = mean(LOG_VALUE,na.rm = T),
+# Calculate the mean 'NO_OF_INDIVIDUALS' for each bin, ignoring missing values
+         INDIVIDUALS_binned = mean(LOG_MIGRATION, na.rm = T))
+
+ 
+```
+
+Creating the graph
+```{r}
+# Create a scatter plot with the clean_data and binned data using 
+ggplot
+ggplot(binned_data) +
+  geom_point(aes(x = LOG_MIGRATION, y = LOG_VALUE, color = INDIVIDUAL_bins), alpha = 0.3) +
+  geom_point(aes(x = INDIVIDUALS_binned, y = VALUE_binned), size = 3, color = "navy") +  # Binned Averages
+  labs(x = "Number of People inflow", y = "Average House Prices") +
+  theme_minimal()
+```
+The bin scatter plot suggests a positive correlation between the number of people inflow and average house prices. As the number of people inflow increases, average house prices generally tend to increase as well. This pattern suggests that higher inflows of people are associated with higher house prices, possibly due to demand pressures in areas with higher population inflow. 
+
+creating a local regression using the bin
+```{r}
+# Create a smooth trend line plot using ggplot2
+ggplot(binned_data,aes(x=LOG_MIGRATION, y= LOG_VALUE))+
+  geom_smooth()# Add a smooth trend line to visualize the overall relationship between NO_OF_INDIVIDUALS and VALUE
+```
+The CEF shows a clear linear upward sloping trend(positive relationship between migrations and housing prices). This suggests that higher levels of migrations are generally associated with higher house value.
+
+
+
+Trends of migration (Number of individuals inflow)
+```{r}
+# Plot LOG_MIGRATION over YEAR for each county, with points colored by county name
+ggplot(clean_data, aes(x = YEAR, y = LOG_MIGRATION, 
+          # Define grouping by county 
+                       group = Y1_COUNTYNAME.x, 
+  # Set color by county name to differentiate points by county
+                       color = Y1_COUNTYNAME.x)) +
+  #Add points to represent LOG_MIGRATION at each YEAR
+  geom_point() +
+  labs(title = "Trend of NO_OF_INDIVIDUALS(INFLOW) by Year", x = "YEAR", y = "NO_OF_INDIVIDUALS(INFLOW)") +
+  theme(legend.position = "none")
+```
+
+Plotting trend for the value (housing prices) 
+```{r}
+# Plot LOG_VALUE over YEAR for each county, with points colored by county name
+ggplot(clean_data, aes(x = YEAR, y = LOG_VALUE, 
+  # Define grouping by county                     
+                       group = Y1_COUNTYNAME.x, 
+  # Set color by county name to differentiate points by county
+                       color = Y1_COUNTYNAME.x)) +
+  #Add points to represent LOG_MIGRATION at each YEAR
+  geom_point() +
+  labs(title = "Trend of VALUE by Year", x = "YEAR", y = "VALUE") +
+  theme(legend.position = "none")
+```
+
+
+Box Plot for counties with the highest VALUE
+```{r}
+# Find the top 10 counties with the highest mean of housing prices
+
+top_counties = clean_data |>
+  group_by(Y1_COUNTYNAME.x)|># Group data by county name
+  summarise(mean_value = mean(LOG_VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+# Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
+
+# Filters the original data to only include top counties
+filtered_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top_counties$Y1_COUNTYNAME.x)
+
+# Box plot for top counties 
+ggplot(filtered_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_VALUE), y = LOG_VALUE)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Box Plot of VALUE for Top 10 Counties", x = "County", y = "VALUE") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+The boxes show the interquartile range (IQR), which is the range from the 25th percentile (bottom edge of the box) to the 75th percentile (top edge of the box).The line within each box represents the median VALUE for that county. Whiskers extend from the box to indicate the range of values within 1.5 times the IQR. Points outside this range are potential outliers and are shown as individual dots.
+Maricopa County has the highest median and overall spread for VALUE
+Harris County has a wide IQR and median value but shows a larger spread than most other counties, suggesting a significant variation in VALUE.
+San Diego County also shows a wide range, with both a high median and notable spread in VALUE.
+Counties like King County, Tarrant County, Collin County, Wake County, and San Bernardino County have relatively narrow distributions, with lower median values and smaller ranges, indicating less variability in VALUE.
+Counties like King County, Tarrant County, Collin County, Wake County, and San Bernardino County have relatively narrow distributions, with lower median values and smaller ranges, indicating less variability in VALUE.
+Outliers are present in Collin County and Wake County, represented by individual dots outside the whiskers. These are VALUE observations that are higher than typical values for these counties.
+This plot indicates that VALUE(housing price) varies significantly across these counties. Counties like Maricopa and San Diego have high values and wide ranges, while others (like Collin, Wake, and San Bernardino) have lower values and less variation
+
+
+Box Plot for counties with the highest of individual inflow  
+```{r}
+# Find the top 10 counties with the highest mean of inflow (migration)
+top2_counties = clean_data |>
+  group_by(Y1_COUNTYNAME.x)|># Group data by county name
+  summarise(mean_value = mean(LOG_MIGRATION, na.rm = T))|> # Calculate the mean of migration (inflow) for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+#Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
+
+# Filters the original data to only include top counties
+filter_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top2_counties$Y1_COUNTYNAME.x)
+
+# Box plot for top counties 
+ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION), y = LOG_MIGRATION)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Box Plot of Individual Inflow for Top 10 Counties", x = "County", y = "Number of Individual Inflow") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+This box plot above provides a summary of the number of individual inflow  for the top 10 counties.
+Los Angeles County has the highest median inflow among the counties and shows a relatively wide range, suggesting a high variation in individual inflows.
+Maricopa County and San Diego County also exhibit high inflows, but with narrower distributions than Los Angeles County, indicating less variation.
+Counties like New York County and Broward County show lower median inflows and a narrower range, suggesting more consistent inflow numbers with fewer outliers.
+
+
+Mean value (housing prices) by state and plot
+```{r}
+#Group the data by state and calculates the mean of VALUE
+state_summary = clean_data|>
+  group_by(STATEPOSTAL)|>
+  summarise(mean_value = mean(LOG_VALUE,na.rm = T))
+
+#Plot the box plot
+ggplot(state_summary, aes(x = reorder(STATEPOSTAL, -mean_value), y= mean_value))+
+   geom_point(fill = "lightblue", size = 3) +
+  labs(title = "Scatter Plot of Average VALUE by State", x = "State", y = "VALUE") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+By the State level
+```{r}
+# Calculates mean LOG_VALUE(Housing prices) and mean LOG_MIGRATION(Migration) for each state
+state_summary2 = clean_data |>
+# Group data by state postal cod  
+  group_by(STATEPOSTAL) |>
+  summarise(
+    mean_value = mean(LOG_VALUE, na.rm = TRUE),# Calculate mean of LOG_VALUE for each state
+    mean_inflow = mean(LOG_MIGRATION, na.rm = TRUE) # Calculate mean of LOG_MIGRATION for each state
+  )
+```
+
+Taking the top 10 states for both Value and number of individuals inflow
+```{r}
+# Filter for the top 10 states by mean VALUE and mean inflow
+top_value_states = state_summary2 |>
+# Arrange states in descending order of mean_value  
+  arrange(desc(mean_value)) |>
+ # Select the first 10 rows (top 10 states)  
+  slice(1:10)
+
+top_inflow_states = state_summary2 |>
+# Arrange states in descending order of mean_inflow  
+  arrange(desc(mean_inflow)) |>
+ # Select the first 10 rows (top 10 states)  
+  slice(1:10)
+```
+
+
+Graph 
+```{r}
+# Filter data to include only the top 10 states based on mean inflow
+s1 = clean_data|>
+ # Selects rows for states in top_inflow_states  
+  filter(STATEPOSTAL %in% top_inflow_states$STATEPOSTAL)
+
+# Create a box plot of LOG_MIGRATION for the top 10 states by mean inflow
+ggplot(s1, aes(x = reorder(STATEPOSTAL, -LOG_MIGRATION), y = LOG_MIGRATION)) +
+# Adds a boxplot with light green fill  
+  geom_boxplot(fill = "lightgreen") +
+#sets plot tltle  
+  labs(title = "Top 10 States by Inflow Distribution", x = "State", y = "MIGRATION") +
+# Applies a minimal theme for a clean look  
+  theme_minimal() +
+# Rotates x-axis text for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+This box plot represents the distribution of migration inflows for the top 10 states, providing insights into how migration varies across these states.
+DC (District of Columbia) has a higher median inflow and a smaller spread, meaning its migration inflows are relatively high and consistent with few outliers.
+NJ (New Jersey) and MA (Massachusetts) have wider distributions, indicating higher variability in migration inflows.
+AZ (Arizona) and FL (Florida) also have a wider spread, suggesting significant variation in migration inflows, including some high outliers.
+DE (Delaware), RI (Rhode Island), and HI (Hawaii) have lower median inflows and narrower ranges, indicating more consistent but lower migration numbers.
+
+
+Plot the top ten states based of mean of VALUE
+```{r}
+# Filter data to include only the top 10 states based on mean value
+s2 = clean_data|>
+# Selects rows for states in top_inflow_states  
+  filter(STATEPOSTAL %in% top_value_states$STATEPOSTAL)
+
+# Create a box plot of LOG_MIGRATION for the top 10 states by mean value
+ggplot(s2, aes(x = reorder(STATEPOSTAL, -LOG_VALUE), y = LOG_VALUE)) +
+# Adds a boxplot with light green fill  
+  geom_boxplot(fill = "lightgreen") +
+# Adds plot title  
+  labs(title = "Top 10 States by VALUE Distribution", x = "State", y = "VALUE") +
+# Applies a minimal theme for a clean look  
+  theme_minimal() +
+# Rotates x-axis text for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+This box plot illustrates the distribution of "VALUE" for the top 10 states. Each box plot represents the spread and central tendency of the VALUE variable for each state. DC (District of Columbia) has the highest median "VALUE" with a narrow distribution, suggesting that the values are high and relatively consistent.
+CA (California) and MA (Massachusetts) show a wider spread, indicating significant variability in the "VALUE" variable within these states.
+NJ (New Jersey) has a few low outliers, showing some unusually low values compared to the rest of its distribution.
+HI (Hawaii) and MD (Maryland) have lower median values compared to other states, with relatively narrower distributions, indicating more consistent but lower values.
+
+
+Polynomial Regression 
+```{r}
+# Fit a 4th degree polynomial regression model of VALUE on NO_OF_INDIVIDUALS(INFLOW)
+Poly_reg = feols(VALUE ~ poly(`NO_OF_INDIVIDUALS(INFLOW)`, 4), data = clean_data)
+
+# Display the summary of the regression model
+summary(Poly_reg)
+```
+Predicting the fitted values
+```{r}
+# predict to get fitted values
+poly_predict = predict(Poly_reg,data = clean_data,interval = "confidence")
+# Combine the original data with the predicted values and confidence intervals
+poly_fitted = cbind(clean_data,poly_predict)
+
+
+# Create a plot to visualize the polynomial regression fit and confidence intervals
+ggplot(poly_fitted, aes(x =`NO_OF_INDIVIDUALS(INFLOW)`))+ theme() +
+  geom_point(aes(y=VALUE),alpha = 0.1)+  # Scatter plot of actual data 
+  # Confidence interval ribbon around the fitted line
+  geom_ribbon(aes(ymin = ci_low, ymax = ci_high), fill = "coral") +
+  # Fitted line from the polynomial regression
+  geom_line(aes(y = fit),size = 1,color = "orange") + 
+  labs(x = "Number of Immigrants", y = "Housing Prices", title = "Forth-Order Polynomial Regression") +
+  theme_minimal()
+```
+This graph shows a scatter plot of the relationship between Number of Immigrants (on the x-axis) and Housing Prices (on the y-axis), with a fourth-order polynomial regression line (in orange) fitted to the data. The graph show an overall positive trend between the two variables, where housing prices increase as the number of immigrants grows, but with considerable spread. The polynomial regression captures all the complexities that would have otherwise be smoothen out by fitting a linear regression. At the initial stages the housing prices increase as the number of immigrants rises. The curve begins to flatten at the middle part (showing slow rate of increase in housing prices) and peaks again. And at the tail end has a slight downward slope indicating that increase in immigrant no longer had an impact on housing prices.
+
+
+
+
+Bin Regression
+```{r}
+# Perform a binned regression using the feols function
+binned_reg = feols(LOG_VALUE~as_factor(ntile(LOG_MIGRATION,10)), data = clean_data)
+# Display the summary of the regression model
+summary(binned_reg)
+
+# Predict values using the binned regression model and add confidence intervals
+binned_reg_predict=predict(binned_reg,data=clean_data,interval = "confidence")
+# Combine the original data with the predicted values and confidence intervals
+binned_reg_fitted= cbind(clean_data,binned_reg_predict)
+
+# Create a plot to visualize the binned regression fit and confidence intervals
+ggplot(binned_reg_fitted,aes(x=LOG_MIGRATION))+ theme_light() +
+   # Scatter plot of actual data points with low opacity
+  geom_point(aes(y = LOG_VALUE), alpha = 0.1) +
+   # Confidence interval ribbon around the fitted line
+  geom_ribbon(aes(ymin = ci_low, ymax = ci_high), fill = "red") +
+  # Fitted line from the binned regression model
+  geom_line(aes(y = fit), size = 1, color = "lightgreen")
+
+```
+
+The scatter plot provides a clear relationship between the housing prices and migration. The dense cloud of points indicates a positive correlation between migration and housing prices. As migration increases, housing prices also tends to increase, showing a general upward trend.
+
+Cubic Splines 
+```{r}
+# Perform a piece wise cubic regression using B-splines
+pw_cubic=feols(VALUE~ splines::bs(`NO_OF_INDIVIDUALS(INFLOW)`,df=5),
+               clean_data)
+# Display the summary of the regression model
+summary(pw_cubic)
+
+
+# Generate fitted values for cubic splines using predict
+pw_cubic_predict = predict(pw_cubic,data=clean_data, interval = "confidence")
+pw_cubic_fitted=cbind(clean_data,pw_cubic_predict)
+
+# Create a plot to visualize the piece wise cubic regression fit and confidence intervals
+ggplot(pw_cubic_fitted, aes(x = `NO_OF_INDIVIDUALS(INFLOW)`)) + theme_light()+
+  # Scatter plot of original data points 
+  geom_point(aes(y=VALUE),alpha = 0.1)+ 
+  # Confidence interval ribbon around the fitted line
+    geom_ribbon(aes(ymin = ci_low, ymax = ci_high), fill = "coral", alpha=2)+
+  # Fitted line from the piece wise cubic regression model
+  geom_line(aes(y =fit), size = 1,color = "green")+ 
+  labs(x = "Number of Immigrants", y = "Housing Prices", title = "Cubic Splines Regression (5 Degrees of Freedom)") +
+  theme_minimal()
+```
+This plot shows the relationship between the number of immigrants and housing prices, with a fitted regression line using cubic splines with 5 degrees of freedom.
+The spline curve shows a non-linear positive relationship between the number of immigrants and housing prices. At lower levels of immigration, housing prices rise gradually. As the number of immigrants increases, the slope of the curve becomes steeper, indicating a faster rate of increase in housing prices.This could suggest that states with higher numbers of immigrants experience higher demand for housing, leading to increased housing prices.
+
+
+```{r}
+# Reshape data to a long format for easier plotting of multiple variables
+
+clean_data_long = clean_data |>
+  pivot_longer(
+    cols = c(LOG_MIGRATION, LOG_VALUE),# Select columns to pivot into long format
+    names_to = "Variable", # Name the new column that will hold the variables names
+    values_to = "Log_Value" # Name the new column that will hold the values of the variables
+    )
+
+# Plot density distributions for LOG_MIGRATION (Migration) and LOG_VALUE (Housing prices)
+ggplot(clean_data_long, aes(x = Log_Value, fill = Variable)) +
+# Density plot with transparency and smoother curve  
+  geom_density(alpha = 0.4, adjust = 1.2) +
+#Adds plot title  
+  labs(title = "Density Plot of LOG_MIGRATION and LOG_VALUE",
+       x = "Log Values",
+       y = "Density") +
+# Apply a minimal theme for a clear visualization  
+  theme_minimal() +
+# Separate panels for each variable, with independent scales  
+  facet_wrap(~ Variable, scales = "free")  # Separate panels for each variable
+
+```
+
