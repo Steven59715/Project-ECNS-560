@@ -14,7 +14,7 @@ library(fixest)
 
 # Simon working directory:   "G:/My Drive/In Course Project/"
 
-# Steve working directory:  "C:/Users/Owner/Documents/ECNS 560/Project/R Files In Process/"
+# Steve working directory:  "C:/Users/Owner/Documents/GitHub/Project-ECNS-560"
 
 # set working directory before continuing!
 
@@ -211,3 +211,104 @@ clean_data = main_data[!is.na(main_data$VALUE),]
 
 #Saving the data
 save(clean_data, file =  "clean_data.RData")
+
+
+# Getting the needed interest rates from the JP Morgan website using Web Scraping
+
+url = "https://www.jpmorganchase.com/legal/historical-prime-rate"
+
+page = read_html(url)
+
+table=page|>html_elements("table")
+
+Prime15to24 = table[[1]] |> html_table()
+Prime07to12 = table[[2]] |> html_table()
+
+# Combining two tables to make one covering the needed years for our analysis
+
+prime_rates = rbind(Prime15to24, Prime07to12)
+
+# Clean the data frame, change dates and rates from strings to date format and numerical format
+prime_clean = prime_rates
+
+# Change Column Name to Date - which is the date a rate took effect
+colnames(prime_clean)[1] = "Date"
+
+# Create column for dates in standard format for R
+prime_clean = prime_clean |> mutate(date_std = str_replace_all(Date, "\\[.*", ""))
+
+# Create a column for date in MDY format
+prime_clean = prime_clean |>
+  mutate(DateMDY = mdy(date_std))
+
+# Remove % from prime rates and change to numeric format, result in new column
+prime_clean = prime_clean |>
+  mutate(PrimeRate = as.numeric(str_replace_all(Rate, "%","")))
+
+# Save prime_clean in case needed
+#save(prime_clean, file = "prime_clean.RData")
+
+# Continue to process the prime rate data so that an average by year can be calculated
+
+# Only keep needed columns
+PrimeRatesClean = select(prime_clean, DateMDY, PrimeRate)
+
+ggplot(PrimeRatesClean, aes(x=DateMDY, y=PrimeRate)) + geom_point() + theme_light() +
+  labs(title = "Prime Lending Rate", x = "Date", y = "Prime Interest Rate")
+
+# Extract Year and Day of Year
+PrimeRatesClean = PrimeRatesClean |>
+  mutate(Year = year(DateMDY))
+
+PrimeRatesClean = PrimeRatesClean |>
+  mutate(Day = yday(DateMDY))
+
+# Create vector of first and last days of year from 2012 to 2022
+zerorate = seq(0,0, length.out = 22)
+Years = c(seq(2012, 2022, 1),seq(2012, 2022, 1))
+Day = c(seq(1,1,length.out=11), seq(365,365,length.out=11))
+
+# Put together day and year to make a vector of dates of first and last day of year, format as mdy
+DateTest = as.Date(ifelse(Day==1, 0, Day), format = "%j", origin = gsub(" ","",paste("1.1.",Years)))
+DateTest = c(gsub(" ","",paste("1.1.",Years[1:11])),gsub(" ","",paste("12.31.",Years[12:22])))
+DateTest = mdy(DateTest)
+
+# Create data frame of first and last days of year, use 0 for prime rate
+PRYear = data.frame(DateMDY = DateTest, PrimeRate = zerorate, Year = Years, Day)
+
+# bind together the prime rates data and the first and last day of month data
+AvePrimeRates = rbind(PrimeRatesClean, PRYear)
+AvePrimeRates = arrange(AvePrimeRates, Year, Day)
+
+# Replace 0 rates with most recent rate
+AvePrimeRates$PrimeRate = ifelse(AvePrimeRates$PrimeRate == 0, lag(AvePrimeRates$PrimeRate), AvePrimeRates$PrimeRate)
+
+AvePrimeRates$PrimeRate = ifelse(AvePrimeRates$PrimeRate == 0, 3.25, AvePrimeRates$PrimeRate)
+AvePrimeRates$PrimeRate
+
+AvePR = filter(AvePrimeRates, AvePrimeRates$Year>2010 & AvePrimeRates$Year<2023)
+AvePR = filter(AvePR, Day != 365)   # Removed end of year, not needed for simple average
+
+# Summarize by year, calculate an average
+AvePRbyYear = AvePR |>
+  group_by(Year) |>
+  summarise(MeanPR = mean(PrimeRate))
+
+save(AvePRbyYear, file = "AvePRbyYear.RData")
+
+#Attach average prime rate as a column to the data frame by year.
+
+# Create a column for the prime rate interest rate
+clean_data_PR = clean_data |>
+  mutate(AvePR = 0)
+
+# Look up the average prime interest rate for each year in the data set
+for (i in seq(nrow(clean_data_PR))){
+  index = clean_data_PR$YEAR[i]
+  rate = AvePRbyYear$MeanPR[AvePRbyYear$Year==index]
+  clean_data_PR$AvePR[i] = rate
+}
+
+#Saving the data
+save(clean_data_PR, file =  "Cleaned Data/clean_data_PR.RData")
+
