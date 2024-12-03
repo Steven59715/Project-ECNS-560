@@ -210,7 +210,7 @@ skim(main_data)
 clean_data = main_data[!is.na(main_data$VALUE),]
 
 #Saving the data
-save(clean_data, file =  "clean_data.RData")
+save(clean_data, file =  "Cleaned Data/clean_data.RData")
 
 
 # Getting the needed interest rates from the JP Morgan website using Web Scraping
@@ -294,7 +294,10 @@ AvePRbyYear = AvePR |>
   group_by(Year) |>
   summarise(MeanPR = mean(PrimeRate))
 
-save(AvePRbyYear, file = "AvePRbyYear.RData")
+save(AvePRbyYear, file = "Cleaned Data/AvePRbyYear.RData")
+
+#load("Cleaned Data/AvePRbyYear.RData")
+#load("Cleaned Data/clean_data.RData")
 
 #Attach average prime rate as a column to the data frame by year.
 
