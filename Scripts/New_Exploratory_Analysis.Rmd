@@ -271,7 +271,8 @@ ggplot(filtered_counties, aes(x = YEAR, y = `NO_OF_INDIVIDUALS(INFLOW)`,
                        color = Y1_COUNTYNAME.x)) +
   #Add points to represent LOG_MIGRATION at each YEAR
   geom_point() + geom_line() +
-  labs(title = "Top 10 Counties for Migration by Year", x = "YEAR", y = "Migration Inflow")
+  labs(title = "Top 10 Counties for Migration by Year, Top 10 Counties", x = "YEAR", y = "Migration Inflow", color = "County")
+
 ```
 
 Most of the counties with the highest immigration inflow vary by year in similar ways.  For example, in 2015 most of the counties experienced lower immigration, but in 2016 through 2017 most of the top ten counties saw increases in annual immigration.  This suggests there may be a factor connected with each year which affects immigration for all of these counties.
@@ -302,7 +303,7 @@ ggplot(filtered_counties, aes(x = YEAR, y = VALUE,
                        color = Y1_COUNTYNAME.x)) +
   #Add points to represent LOG_MIGRATION at each YEAR
   geom_line() +
-  labs(title = "Trend of Housing Prices by Year,, Top 10 Counties", x = "YEAR", y = "Housing Prices", color = "County")
+  labs(title = "Trend of Housing Prices by Year, Top 10 Counties", x = "YEAR", y = "Housing Prices", color = "County")
   
 ```
 
@@ -326,7 +327,7 @@ filtered_counties= clean_data|>
 # Box plot for top counties 
 ggplot(filtered_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_VALUE), y = LOG_VALUE)) +
   geom_boxplot(fill = "lightgreen") +
-  labs(title = "Box Plot of VALUE for Top 10 Counties", x = "County", y = "VALUE") +
+  labs(title = "Box Plot of Housing Prices for Top 10 Counties", x = "County", y = "Housing Prices (Log Transformed)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
@@ -360,8 +361,9 @@ filter_counties= clean_data|>
 # Box plot for top counties 
 ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION), y = LOG_MIGRATION)) +
   geom_boxplot(fill = "lightgreen") +
-  labs(title = "Box Plot of Individual Inflow for Top 10 Counties", x = "County", y = "Number of Individual Inflow") +
+  labs(title = "Box Plot of Individual Inflow for Top 10 Counties", x = "County", y = "Migration Inflow (Log Transformed") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 ```
 
 This box plot above provides a summary of the number of individual inflow  for the top 10 counties.
@@ -369,8 +371,9 @@ Los Angeles County has the highest median inflow among the counties and shows a 
 Maricopa County and San Diego County also exhibit high inflows, but with narrower distributions than Los Angeles County, indicating less variation.
 Counties like New York County and Broward County show lower median inflows and a narrower range, suggesting more consistent inflow numbers with fewer outliers.
 
+### Finding 3:  3. The distribution patterns of migration and housing prices across states and time. (Descriptive)
 
-Mean Housing Prices by state
+#### Mean Housing Prices by state
 
 ```{r}
 #Group the data by state and calculates the mean of VALUE
@@ -437,7 +440,7 @@ ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group = STATE
                        
   #Add points to represent LOG_MIGRATION at each YEAR
   geom_line() +
-  labs(title = "Top 10 States for Migration by Year", x = "YEAR", y = "Migration Inflow")
+  labs(title = "Top 10 States for Migration by Year", x = "YEAR", y = "Migration Inflow", color = "State")
 
 ```
  
@@ -453,7 +456,7 @@ ggplot(s1, aes(x = reorder(STATEPOSTAL, -LOG_MIGRATION), y = LOG_MIGRATION)) +
 # Adds a boxplot with light green fill  
   geom_boxplot(fill = "lightgreen") +
 #sets plot tltle  
-  labs(title = "Top 10 States by Inflow Distribution", x = "State", y = "MIGRATION") +
+  labs(title = "Top 10 States by Inflow Distribution", x = "State", y = "MIGRATION (Log Transformed)") +
 # Applies a minimal theme for a clean look  
   theme_minimal() +
 # Rotates x-axis text for better readability  
@@ -479,7 +482,7 @@ ggplot(s2, aes(x = reorder(STATEPOSTAL, -LOG_VALUE), y = LOG_VALUE)) +
 # Adds a boxplot with light green fill  
   geom_boxplot(fill = "lightgreen") +
 # Adds plot title  
-  labs(title = "Top 10 States by VALUE Distribution", x = "State", y = "VALUE") +
+  labs(title = "Top 10 States by Housing Prices Distribution", x = "State", y = "Housing Prices (Log Transformed)") +
 # Applies a minimal theme for a clean look  
   theme_minimal() +
 # Rotates x-axis text for better readability  
