@@ -24,11 +24,11 @@ Lastly, it can also serve as a guide for urban planning and infrastructure plann
 
 1. What is the relationship between migration and housing prices. (Descriptive, Predictive)
 
-2. The distribution patterns of migration and housing prices across states and time. (Descriptive)
+2. How does the effect on housing prices vary according to counties? (Descriptive)
 
-3. The impact of urbanization driven by migration on housing prices. (Descriptive)
+3. The distribution patterns of migration and housing prices across states and time. (Descriptive)
 
-4. How does the effect on housing prices vary according to counties? (Descriptive)
+4. The impact of urbanization driven by migration on housing prices. (Descriptive)
 
 ### Data Description
 
@@ -168,6 +168,7 @@ ggplot(clean_data,aes(x=LOG_MIGRATION))+
 ```
 
 #### Finding 1: The relationship between migration and housing prices
+
 ```{r}
 # Create a scatter plot of LOG_MIGRATION vs. LOG_VALUE with a smoothing line
 ggplot(clean_data, aes(x=LOG_MIGRATION, y =LOG_VALUE)) +
@@ -181,11 +182,13 @@ ggplot(clean_data, aes(x=LOG_MIGRATION, y =LOG_VALUE)) +
 There is a clear positive non-linear relationship (upward sloping pattern) between number of individuals inflow (migrants) and housing prices. This indicates as the number of migrants increases, housing prices also tends to increase. The points are tightly clustered around a linear trend suggesting a high correlation.
 
 
-```{r}
+```{r, fig.keep = "none"}
 #Generate a binned scatter plot of log-transformed VALUE and log-transformed NO_OF_INDIVIDUALS(INFLOW)
 binsreg(log(clean_data$VALUE),log(clean_data$`NO_OF_INDIVIDUALS(INFLOW)`))
+
+# There is an overall positive relationship between immigration and housing prices, as indicated by the upward trend. As the NO_OF_INDIVIDUALS(INFLOW) increases, VALUE also tends to increase, suggesting a direct association(correlation) between these two variables. This also affirms the relationship between the variables by the scatter graph even though this show a non - linear relationship
 ```
-There is an overall positive relationship between immigration and housing prices, as indicated by the upward trend. As the NO_OF_INDIVIDUALS(INFLOW) increases, VALUE also tends to increase, suggesting a direct association(correlation) between these two variables. This also affirms the relationship between the variables by the scatter graph even though this show a non - linear relationship
+
 
  
 ```{r, fig.keep = "none"}
@@ -196,7 +199,7 @@ ggplot(clean_data,aes(x=LOG_MIGRATION,y= LOG_VALUE)) +
 # Add a smooth line using LOESS smoothing with linear fitting  
   geom_smooth(method = "loess")
 
-#The graph shows a positive relationship (upward trend) between number of individuals inflow (migration) and housing prices, signifying that when migration(inflow) increases housing prices.The relationship is not a linear one but due to the smoothness some of the variations are been averaged out hence we do not have enough information about some key variations.
+# The graph shows a positive relationship (upward trend) between number of individuals inflow (migration) and housing prices, signifying that when migration(inflow) increases housing prices.The relationship is not a linear one but due to the smoothness some of the variations are been averaged out hence we do not have enough information about some key variations.
 ```
 
 
@@ -233,47 +236,74 @@ ggplot(binned_data) +
  
 
 
-```{r}
+```{r, fig.keep = "none"}
 # creating a local regression using the bin
 # Using a local regression
 # Create a smooth trend line plot using ggplot2
 ggplot(binned_data,aes(x=LOG_MIGRATION, y= LOG_VALUE))+
   geom_smooth()# Add a smooth trend line to visualize the overall relationship between NO_OF_INDIVIDUALS and VALUE
+
+# The CEF shows a clear linear upward sloping trend(positive relationship between migrations and housing prices). This suggests that higher levels of migrations are generally associated with higher house value.
 ```
-The CEF shows a clear linear upward sloping trend(positive relationship between migrations and housing prices). This suggests that higher levels of migrations are generally associated with higher house value.
 
+### finding 2:  How does the effect on housing prices vary according to counties? (Descriptive)
 
-### finding 2:  Distribution Patterns of Migration and Housing Prices Across States and Time
-
-Trends of migration (Number of individuals inflow)
+#### Trends of migration (Number of individuals inflow)
 
 ```{r}
 
 # Plot LOG_MIGRATION over YEAR for each county, with points colored by county name
-ggplot(clean_data, aes(x = YEAR, y = LOG_MIGRATION, 
-          # Define grouping by county 
-                       group = Y1_COUNTYNAME.x, 
+Top_Immigration = clean_data |>
+  group_by(Y1_COUNTYNAME.x) |>
+  summarise(mean_value = mean(`NO_OF_INDIVIDUALS(INFLOW)`, na.rm = T))|> # # Calculate the mean of migration for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+# Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
+
+# Filters the original data to only include top counties
+filtered_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% Top_Immigration$Y1_COUNTYNAME.x)
+
+ggplot(filtered_counties, aes(x = YEAR, y = `NO_OF_INDIVIDUALS(INFLOW)`,
+          # Define grouping by county
+                       group = Y1_COUNTYNAME.x,
   # Set color by county name to differentiate points by county
                        color = Y1_COUNTYNAME.x)) +
   #Add points to represent LOG_MIGRATION at each YEAR
-  geom_point() +
-  labs(title = "Trend of Migrations Inflow by Year", x = "YEAR", y = "Migration Inflow (Log Transformed") +
-  theme(legend.position = "none")
+  geom_point() + geom_line() +
+  labs(title = "Top 10 Counties for Migration by Year", x = "YEAR", y = "Migration Inflow")
 ```
+
+Most of the counties with the highest immigration inflow vary by year in similar ways.  For example, in 2015 most of the counties experienced lower immigration, but in 2016 through 2017 most of the top ten counties saw increases in annual immigration.  This suggests there may be a factor connected with each year which affects immigration for all of these counties.
+
 
 Plotting trend for the value (housing prices) 
 
 ```{r}
-# Plot LOG_VALUE over YEAR for each county, with points colored by county name
-ggplot(clean_data, aes(x = YEAR, y = LOG_VALUE, 
+
+# Find top ten counties for house prices
+top_counties_prices = clean_data |>
+  group_by(Y1_COUNTYNAME.x)|># Group data by county name
+  summarise(mean_value = mean(VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+# Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
+
+# Filters the original data to only include top counties
+filtered_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top_counties_prices$Y1_COUNTYNAME.x) |>
+  filter(STATEPOSTAL != "GA")  # Keep only Harris County, TX
+
+# Plot Housing Prices (VALUE) over YEAR for each county, with points colored by county name
+ggplot(filtered_counties, aes(x = YEAR, y = VALUE, 
   # Define grouping by county                     
                        group = Y1_COUNTYNAME.x, 
   # Set color by county name to differentiate points by county
                        color = Y1_COUNTYNAME.x)) +
   #Add points to represent LOG_MIGRATION at each YEAR
-  geom_point() +
-  labs(title = "Trend of Housing Prices by Year", x = "YEAR", y = "Housing Prices (Log Transformed)") +
-  theme(legend.position = "none")
+  geom_line() +
+  labs(title = "Trend of Housing Prices by Year,, Top 10 Counties", x = "YEAR", y = "Housing Prices", color = "County")
+  
 ```
 
 
@@ -387,9 +417,29 @@ top_inflow_states = state_summary2 |>
   arrange(desc(mean_inflow)) |>
  # Select the first 10 rows (top 10 states)  
   slice(1:10)
+
 ```
 
 
+
+```{r}
+
+# Filters the original data to only include top counties
+filtered_inflow_states= clean_data|>
+  filter(STATEPOSTAL %in% top_inflow_states$STATEPOSTAL) |>
+  group_by(STATEPOSTAL, YEAR) |>
+  summarise(mean_inflow_year = mean(`NO_OF_INDIVIDUALS(INFLOW)`))
+
+# unique(filtered_inflow_states$STATEPOSTAL)
+
+ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group = STATEPOSTAL, color = STATEPOSTAL)) +
+  # Set color by county name to differentiate points by county
+                       
+  #Add points to represent LOG_MIGRATION at each YEAR
+  geom_line() +
+  labs(title = "Top 10 States for Migration by Year", x = "YEAR", y = "Migration Inflow")
+
+```
  
 ```{r}
 # Graph
