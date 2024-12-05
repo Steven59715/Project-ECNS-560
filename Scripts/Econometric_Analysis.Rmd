@@ -32,12 +32,13 @@ library(stargazer)
 Loading the data
 ```{r}
 load("C:/Users/attaa/OneDrive/Desktop/r/Project-ECNS-560/Cleaned Data/clean_data_PR.RData")
+clean_data=clean_data_PR
 ```
 
 
 ```{r}
 # Rename columns in the clean_data_PR dataset
-clean_data_PR = clean_data_PR|>
+clean_data = clean_data|>
   rename(
 # Rename the column "VALUE" to "HOUSING_PRICE"    
     HOUSING_PRICE = VALUE,
@@ -49,7 +50,7 @@ clean_data_PR = clean_data_PR|>
 
 ```{r}
 # Add new columns with log-transformed values to the clean_data_PR dataset
-clean_data_PR = clean_data_PR |>
+clean_data = clean_data |>
   mutate(
 # Create a new column "LOG_HOUSING_PRICE" by applying the natural log to "HOUSING_PRICE"    
     LOG_HOUSING_PRICE = log(HOUSING_PRICE),
@@ -64,7 +65,7 @@ clean_data_PR = clean_data_PR |>
 # Fit a simple linear regression model
 # LOG_HOUSING_PRICE is the dependent variable (outcome).
 # LOG_MIGRATION is the independent variable (predictor).
-simple_reg= lm(LOG_HOUSING_PRICE~ LOG_MIGRATION, data=clean_data_PR)
+simple_reg= lm(LOG_HOUSING_PRICE~ LOG_MIGRATION, data=clean_data)
 
 # Summarize the regression model results in a tidy format
 tidy(simple_reg)
@@ -80,7 +81,7 @@ fix_reg = plm(
 # Use the "within" model for fixed-effects estimation
   model = "within", 
 # specifies the dataset containing the variables
-  data=clean_data_PR
+  data=clean_data
   )
 
 # Summarize the regression model results in a tidy format
@@ -96,7 +97,7 @@ fix_reg_control = plm(
 #Specifies a fixed-effects model  
   model = "within", 
 #Specifies the dataset containing the variables for the analysis
-  data=clean_data_PR
+  data=clean_data
   )
 
 # Summarize the regression results in a tidy format
