@@ -15,13 +15,13 @@ Migration is the movement of people from one place to another. This can happen i
 
 Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or educational purposes, inform migration decisions for people moving between nations. Family, employment, educational pursuits, or other interests are some of the underlying reasons people may choose to relocate within the U.S. 
 
-Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums. Immigration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of immigrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
+Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums. Migration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of migrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
 
 
 
 ### Why It Matters
 
-Firstly, it is crucial for policymakers as it aids them in making informed decisions regarding immigration, which in turn helps to stabilize housing prices, ensuring affordability and a high standard of living. 
+Firstly, it is crucial for policymakers as it aids them in making informed decisions regarding migration, which in turn helps to stabilize housing prices, ensuring affordability and a high standard of living. 
 
 Furthermore, it can facilitate the establishment of a stable market, as both homeowners and renters have a reasonable insight into the fluctuations in the housing market. 
 

@@ -13,17 +13,16 @@ output: html_document
 
 ### Motivation
 
-Migration is the movement of people from one place to another. This can happen internationally when people move from one country to another, or it can happen internally as people move within the same country.Migration can be temporary or permanent, voluntary or forced.It can also be seasonal.
+Migration is the movement of people from one place to another. This can happen internationally when people move from one country to another, or it can happen internally as people move within the same country. Migration can be temporary or permanent, voluntary or forced. It can also be seasonal.
 
-Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or educational purposes, inform migration decisions for people moving between nations. Family, employment, educational pursuits, or other interests are some of the underlying reasons people may choose to relocate within the U.S. 
+Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or educational purposes, inform migration decisions for people moving between nations. Family, employment, educational pursuits, or other interests are some of the underlying reasons people may choose to relocate within the same country. 
 
-Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums. Immigration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of immigrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
-
+Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums. Migration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of migrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates. 
 
 
 ### Why It Matters
 
-Firstly, it is crucial for policymakers as it aids them in making informed decisions regarding immigration, which in turn helps to stabilize housing prices, ensuring affordability and a high standard of living. 
+Firstly, it is crucial for policymakers as it aids them in making informed decisions regarding migration, which in turn helps to stabilize housing prices, ensuring affordability and a high standard of living. 
 
 Furthermore, it can facilitate the establishment of a stable market, as both homeowners and renters have a reasonable insight into the fluctuations in the housing market. 
 
@@ -77,7 +76,7 @@ The control variable is interest rate from 2013 to 2020.  The interest rates wer
 
 ### How Migration data and Housing data are related.
 
-There is a close relationship between migration data and the housing data set. Migration patterns can directly influence the demand for housing. Areas facing elevated levels of immigration may see increased development to meet demand. This can affect housing prices depending on how fast supply can catch up.
+There is a close relationship between migration data and the housing data set. Migration patterns can directly influence the demand for housing. Areas facing elevated levels of migration may see increased development to meet demand. This can affect housing prices depending on how fast supply can catch up.
 
 The two data sets were merged by year and the state and county FIPS code.
 
