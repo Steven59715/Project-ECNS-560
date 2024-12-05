@@ -7,17 +7,24 @@ output: html_document
 
 ### Topic
 
-The impact of immigration on housing prices in the US
+The impact of migration on housing prices in the US
 
 ### Motivation
 
-Immigration entails the movement of people from one country to another to settle there permanently or temporarily. However, in our context, we will also be taking into consideration intra-immigration (within the country).
-Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or for educational purposes, inform immigration decisions for person moving between nations.  Family, employment, educational pursuits, or other interests are some underlying reasons people may choose to relocate within the U.S.
+Migration entails the movement of people from one country to another to settle there permanently or temporarily. However, in our context, we will also be taking into consideration intra-immigration (within the country).
+
+Numerous factors, such as economic opportunities, escaping conflict or persecution, reuniting with family, or for educational purposes, inform immigration decisions for people moving between nations.  Family, employment, educational pursuits, or other interests are some underlying reasons people may choose to relocate within the U.S.
+
 Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums.
-Immigration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of immigrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
-Why it Matters.
-To begin with, it is crucial for policymakers as it assists them in making informed decisions regarding immigration, with which they can help steady the housing prices to ensure affordability and a high standard of living.
+
+Migration significantly impacts all facets of the US economy, including the housing market. We aim to examine how the influx of immigrants (both domestic and foreign) impacts local housing prices, considering also the demand and supply factors in the market, such as interest rates.
+
+### Why It Matters.
+
+Firstly, it is crucial for policy makers as it assists them in making informed decisions regarding migration, with which they can help stabilize the housing prices ensuring affordability and a high standard of living.
+
 Furthermore, it can facilitate the establishment of a stable market, as both homeowners and renters have a reasonable insight into the fluctuations in the housing market.
+
 Lastly, it can also serve as a guide for urban planning and infrastructure planning and development.
 
 ### Research Questions
@@ -479,6 +486,37 @@ ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group = STATE
 
 ```
  
+
+
+```{r}
+
+# Filters the original data to only include top counties
+filtered_value_states= clean_data|>
+  filter(STATEPOSTAL %in% top_value_states$STATEPOSTAL) |>
+  group_by(STATEPOSTAL, YEAR) |>
+  summarise(mean_value_year = mean(VALUE))
+
+# unique(filtered_inflow_states$STATEPOSTAL)
+
+ggplot(filtered_value_states, aes(x = YEAR, y = mean_value_year, group = STATEPOSTAL, color = STATEPOSTAL)) +
+  # Set color by county name to differentiate points by county
+                       
+  #Add points to represent LOG_MIGRATION at each YEAR
+  geom_point(size = 1.5) + geom_line(size = 1.2) +
+  scale_color_viridis_d(option = "viridis") + theme_minimal() +
+  labs(title = "Top 10 States for Housing Prices by Year", x = "YEAR", y = "Housing Prices", color = "State")
+
+```
+
+
+
+#### Finding 4:  Impact of urbanization on migration and housing prices
+
+The box plots shown above of the top 10 counties for immigration inflow and the top 10 housing prices are all highly urbanized counties.  This is probably not a very surprising conclusion.
+
+In addition, states that have high population densities due to urbanization are in the top ten for both high housing prices and high immigration.
+
+
 ```{r}
 # Graph
 # Filter data to include only the top 10 states based on mean inflow
@@ -502,29 +540,8 @@ This box plot represents the distribution of migration inflows for the top 10 st
 DC (District of Columbia) has a higher median inflow and a smaller spread, meaning its migration inflows are relatively high and consistent with few outliers.
 NJ (New Jersey) and MA (Massachusetts) have wider distributions, indicating higher variability in migration inflows.
 AZ (Arizona) and FL (Florida) also have a wider spread, suggesting significant variation in migration inflows, including some high outliers.
-DE (Delaware), RI (Rhode Island), and HI (Hawaii) have lower median inflows and narrower ranges, indicating more consistent but lower migration numbers.
+DE (Delaware), RI (Rhode Island), and HI (Hawaii) have lower median inflows and narrower ranges, indicating more consistent but lower migration numbers
 
-
-
-```{r}
-
-# Filters the original data to only include top counties
-filtered_value_states= clean_data|>
-  filter(STATEPOSTAL %in% top_value_states$STATEPOSTAL) |>
-  group_by(STATEPOSTAL, YEAR) |>
-  summarise(mean_value_year = mean(VALUE))
-
-# unique(filtered_inflow_states$STATEPOSTAL)
-
-ggplot(filtered_value_states, aes(x = YEAR, y = mean_value_year, group = STATEPOSTAL, color = STATEPOSTAL)) +
-  # Set color by county name to differentiate points by county
-                       
-  #Add points to represent LOG_MIGRATION at each YEAR
-  geom_point(size = 1.5) + geom_line(size = 1.2) +
-  scale_color_viridis_d(option = "viridis") + theme_minimal() +
-  labs(title = "Top 10 States for Housing Prices by Year", x = "YEAR", y = "Housing Prices", color = "State")
-
-```
 
 ```{r}
 # Filter data to include only the top 10 states based on mean value
@@ -544,17 +561,12 @@ ggplot(s2, aes(x = reorder(STATEPOSTAL, -LOG_VALUE), y = LOG_VALUE)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-
-
 This box plot illustrates the distribution of "VALUE" for the top 10 states. Each box plot represents the spread and central tendency of the VALUE variable for each state. DC (District of Columbia) has the highest median "VALUE" with a narrow distribution, suggesting that the values are high and relatively consistent.
 CA (California) and MA (Massachusetts) show a wider spread, indicating significant variability in the "VALUE" variable within these states.
 NJ (New Jersey) has a few low outliers, showing some unusually low values compared to the rest of its distribution.
 HI (Hawaii) and MD (Maryland) have lower median values compared to other states, with relatively narrower distributions, indicating more consistent but lower values.
 
 
-#### Finding 4:  Impact of urbanization on migration and housing prices
-
-The box plots shown above of the top 10 counties for immigration inflow and the top 10 housing prices are all highly urbanized counties.  This is probably not a very surprising conclusion.
 
 ```{r}
 # Polynomial Regression 
