@@ -1,0 +1,143 @@
+---
+title: "Econometry Analysis"
+author: "Simon and Steven"
+date: "2024-12-04"
+output: html_document
+---
+
+
+### Motivation
+Many factors that may not be easily quantifiable influence individual migration decisions. To provide a quantitative perspective on the relationship between housing price and migration, we conducted a regression analysis. We cannot specifically claim causal inference because of a lack of clear counterfactuals,even though we controlled for some of the variations within state and year and also controlled for prime rates across years. Therefore, the obtained results do not prove causation, but rather they depict a consistent pattern within the data sets. 
+
+
+### Method
+To estimate the impact of migration on housing prices, we used a linear fixed effects model that includes average prime rates as a control variable to account for other variation that the state and year fixed effects could not capture.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F)
+```
+
+Loading the data 
+```{r}
+library(plm)
+library(estimatr)
+library(tidyverse)
+library(dplyr)
+library(broom)
+library(stargazer)
+```
+
+
+Loading the data
+```{r}
+load("C:/Users/attaa/OneDrive/Desktop/r/Project-ECNS-560/Cleaned Data/clean_data_PR.RData")
+```
+
+
+```{r}
+# Rename columns in the clean_data_PR dataset
+clean_data_PR = clean_data_PR|>
+  rename(
+# Rename the column "VALUE" to "HOUSING_PRICE"    
+    HOUSING_PRICE = VALUE,
+# Rename the column "NO_OF_INDIVIDUALS(INFLOW)" to "MIGRATION"
+    MIGRATION = `NO_OF_INDIVIDUALS(INFLOW)`
+  )
+```
+
+
+```{r}
+# Add new columns with log-transformed values to the clean_data_PR dataset
+clean_data_PR = clean_data_PR |>
+  mutate(
+# Create a new column "LOG_HOUSING_PRICE" by applying the natural log to "HOUSING_PRICE"    
+    LOG_HOUSING_PRICE = log(HOUSING_PRICE),
+# Create a new column "LOG_MIGRATION" by applying the natural log to "MIGRATION"
+    LOG_MIGRATION = log(MIGRATION)
+  )
+
+```
+
+
+```{r}
+# Fit a simple linear regression model
+# LOG_HOUSING_PRICE is the dependent variable (outcome).
+# LOG_MIGRATION is the independent variable (predictor).
+simple_reg= lm(LOG_HOUSING_PRICE~ LOG_MIGRATION, data=clean_data_PR)
+
+# Summarize the regression model results in a tidy format
+tidy(simple_reg)
+```
+
+Using the within estimator fixed effects
+```{r}
+# Fit a fixed-effects regression model using plm
+fix_reg = plm(
+  LOG_HOUSING_PRICE ~ LOG_MIGRATION, 
+# Specifies the panel data structure: "STATEPOSTAL" as cross-sectional index and "YEAR" as time index  
+  index = c("STATEPOSTAL", "YEAR"),
+# Use the "within" model for fixed-effects estimation
+  model = "within", 
+# specifies the dataset containing the variables
+  data=clean_data_PR
+  )
+
+# Summarize the regression model results in a tidy format
+tidy(fix_reg)
+```
+
+With control variable  
+```{r}
+fix_reg_control = plm(
+  LOG_HOUSING_PRICE ~ LOG_MIGRATION + AvePR, 
+#Defines the panel data structure (STATEPOSTAL for states, YEAR for time periods)  
+  index = c("STATEPOSTAL", "YEAR"),
+#Specifies a fixed-effects model  
+  model = "within", 
+#Specifies the dataset containing the variables for the analysis
+  data=clean_data_PR
+  )
+
+# Summarize the regression results in a tidy format
+tidy(fix_reg_control)
+```
+
+
+
+### Results
+
+```{r}
+# Generate a formatted regression table
+stargazer(
+#The regression model object from plm  
+  fix_reg_control,
+#Specifies the output format  
+  type = "text",
+#Title for the regression table
+  title = "Regression Output",
+#Custom label for the dependent variable in the output table
+  ep.var.labels = "Log of Housing Price",
+#Custom labels for the independent variables
+  covariate.labels = c("Log of Migration", "Average Prime Rate"),
+  digits = 3
+)
+```
+
+### Interpretation
+From the results, we can tell areas with higher levels of migration also have higher housing prices. As migration increases by 1 percent, housing prices also increase by approximately 1.14 percent. The data reveals the crucial correlation between migration and housing prices. The P value associated with this estimate is <0.01, which is below the conventional threshold for significance of 0.005. This means that the estimate is significant and reliable. 
+
+Average prime rate: For every unit increase in the average prime rate, it is associated with approximately a 21 percent increase in housing prices. The p-value associated with this estimate is <0.01, which is highly significant, indicating that average rates and housing prices are highly correlated.
+
+### Limitations
+
+Our data analysis encounters several limitations that could potentially undermine the results of our regression. First, omitted variable bias. Other variables, not captured in our data set and subsequent regression analysis, may influence the effect of housing price increases. Variables such as income, employment rates, etc. may significantly influence housing prices. Also, the analysis shows relationships between migration, prime rates, and housing prices, but it does not prove that one causes the other. Other unmeasured factors, like government policies, economic shocks, or local market conditions, could influence these variables. Lastly, we adopted the fixed effects model in estimating our analysis. While fixed effects control for unchanging factors within each state and year, they do not account for time-varying factors unique to individual states, which might still influence housing prices.
+
+### Conclusion
+
+The influx of individuals into an area typically increases the demand for housing and often leads to higher prices due to limited supply and competition. Economic growth also correlates with migration, as people gravitate towards regions offering better job opportunities and rising wages, thereby intensifying the demand for housing. In some cases, migration can instigate gentrification, where wealthier newcomers raise property values in lower-income neighborhoods, potentially displacing long-term residents. Higher average prime rates often occur during periods of economic growth and inflation, which can push housing prices up. In a growing economy, despite rising costs of borrowing, buyers may still be willing to pay higher prices because their incomes and investments are also increasing. Sometimes, rising prime rates signal tighter monetary policies. This can lead to a temporary spike in housing prices as buyers rush to secure loans before rates climb even higher.
+
+
+
+### Policy Implications
+To address rising housing prices driven by migration, local governments should focus on building more affordable housing, rezoning for higher-density areas, and encouraging people to move to less crowded regions by improving infrastructure and job opportunities. To manage the effects of rising prime rates, governments can provide low-interest loans or subsidies for first-time buyers to keep housing affordable. Additionally, stricter lending standards can help prevent risky borrowing and speculative bubbles that drive prices even higher.
