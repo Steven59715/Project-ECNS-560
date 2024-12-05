@@ -17,6 +17,8 @@ Numerous factors, such as economic opportunities, escaping conflict or persecuti
 
 Housing prices stand for the cost of purchasing properties, such as houses, apartments, or condominiums. Immigration significantly impacts all facets of the US economy, including the housing market. We want to investigate the impact of immigrants’ influx (both domestic and foreign) on local housing prices, considering also the demand and supply factors in the market such as interest rates and general population increases.
 
+
+
 ### Why It Matters
 
 Firstly, it is crucial for policymakers as it aids them in making informed decisions regarding immigration, which in turn helps to stabilize housing prices, ensuring affordability and a high standard of living. 
@@ -24,6 +26,8 @@ Firstly, it is crucial for policymakers as it aids them in making informed decis
 Furthermore, it can facilitate the establishment of a stable market, as both homeowners and renters have a reasonable insight into the fluctuations in the housing market. 
 
 Finally, it can also function as a guide for urban planning and infrastructure development.
+
+
 
 ### Research Questions
 
@@ -34,6 +38,8 @@ Finally, it can also function as a guide for urban planning and infrastructure d
 3. The distribution patterns of migration and housing prices across states and time. (Descriptive)
 
 4. The impact of urbanization driven by migration on housing prices. (Descriptive)
+
+
 
 ### Data Description
 
@@ -167,6 +173,9 @@ ggplot(clean_data,aes(x=LOG_MIGRATION))+
 ```
 
 
+
+
+
 #### Finding 1: The relationship between migration and housing prices
 
 ```{r}
@@ -282,6 +291,8 @@ ggplot(binned_data,aes(x=LOG_MIGRATION, y= LOG_VALUE))+
 ```
 
 
+
+
 #### Finding 2:  How does the effect on housing prices vary according to counties? (Descriptive)
 
 
@@ -346,56 +357,6 @@ Riverside County experiences the most significant and consistent increase in hou
 Most of the counties with the highest migration inflow vary by year in similar ways. Los Angeles County consistently has the highest migration inflow, although it declines over time. New York County also sees a significant decrease in inflow. Some counties, like Maricopa and Riverside, show gradual increases or stable trends in migration inflow toward 2020. There is notable fluctuation in migration patterns across counties during the observed years. For example, in 2015, most of the counties experienced lower migration, but in 2016–2017, most of the top ten counties saw increases in annual immigration. This implies that a factor associated with each year could influence immigration in all these counties.
 
 
-```{r,fig.width=10, fig.height=4}
-# Find the top 10 counties with the highest mean of housing prices
-
-top_counties = clean_data |>
-  group_by(Y1_COUNTYNAME.x)|># Group data by county name
-  summarise(mean_value = mean(LOG_VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
-  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
-# Select the top 10 counties with the highest mean_value  
-  top_n(10,mean_value)
-
-# Filters the original data to only include top counties
-filtered_counties= clean_data|>
-  filter(Y1_COUNTYNAME.x %in% top_counties$Y1_COUNTYNAME.x)
-
-# Box plot for top counties 
-plot3 = ggplot(filtered_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_VALUE), y = LOG_VALUE)) +
-  geom_boxplot(fill = "lightgreen") +
-  labs(title = "Box Plot of Housing Prices for Top 10 Counties", x = "County", y = "Housing Prices (Log Transformed)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Plot the top ten states based of mean of VALUE
-# Find the top 10 counties with the highest mean of inflow (migration)
-top2_counties = clean_data |>
-  group_by(Y1_COUNTYNAME.x)|># Group data by county name
-  summarise(mean_value = mean(LOG_MIGRATION, na.rm = T))|> # Calculate the mean of migration (inflow) for each county, excluding NA values
-  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
-#Select the top 10 counties with the highest mean_value  
-  top_n(10,mean_value)
-
-# Filters the original data to only include top counties
-filter_counties= clean_data|>
-  filter(Y1_COUNTYNAME.x %in% top2_counties$Y1_COUNTYNAME.x)
-
-# Box plot for top counties 
-plot4 = ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION), y = LOG_MIGRATION)) +
-  geom_boxplot(fill = "lightblue") +
-  labs(title = "Box Plot of Migration for Top 10 Counties", x = "County", y = "Migration (Log Transformed") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-grid.arrange(plot3, plot4, ncol = 2)
-```
-
-The boxes show the interquartile range (IQR), which is the range from the 25th percentile (bottom edge of the box) to the 75th percentile (top edge of the box).The line within each box represents the median house price for that county. Whiskers extend from the box to indicate the range of house prices within 1.5 times the IQR. Individual dots represent potential outliers that fall outside this range. Maricopa County has the highest median and overall spread for house prices. Harris County has a wide IQR and median house price but shows a larger spread than most other counties, suggesting a significant variation in house price. San Diego County also shows a wide range, with both a high median and notable spread in house prices. Counties like King County, Tarrant County, Collin County, Wake County, and San Bernardino County have relatively narrow distributions, with lower median values and smaller ranges, indicating less variability in house prices. Counties like King County, Tarrant County, Collin County, Wake County, and San Bernardino County have relatively narrow distributions, with lower median values and smaller ranges, indicating less variability in house prices. Outliers are present in Collin County and Wake County, represented by individual dots outside the whiskers. These house price observations exceed the typical values for these counties. This plot indicates that housing price varies significantly across these counties. Counties like Maricopa and San Diego have high house prices and wide ranges, while others (like Collin, Wake, and San Bernardino) have lower house prices and less variation.
-
-
-
-This box plot above provides a summary of the migration  for the top 10 counties.
-Los Angeles County has the highest median migration among the counties and shows a relatively wide range, suggesting a high variation in migration.
-Maricopa County and San Diego County also exhibit high inflows, but with narrower distributions than Los Angeles County, indicating less variation.
-Counties like New York County and Broward County show lower median migration and a narrower range, suggesting more consistent migration numbers with fewer outliers.
 
 
 
@@ -493,69 +454,72 @@ plot6 = ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group
 grid.arrange(plot5,plot6, ncol=2)
 
 ```
+
+
+From the graph above, States like Arizona (AZ) and Florida (FL) show consistently high migration levels, peaking around 2017 before declining. Migration trends might be influenced by factors like affordability, job opportunities, and quality of life.
+
 The graph illustrates housing price trends. While prices generally increase across all states, some states, Arizona (AZ) has the highest and most consistent rise in housing prices, peaking in 2018, followed by California (CA), which also sees a steady increase. Other states, like Connecticut (CT), Delaware (DE), and Rhode Island (RI), exhibit slower but noticeable growth in housing prices over the years.
 
-From the graph above, States like Arizona (AZ) and Florida (FL) show consistently high migration levels, peaking around 2016 before declining. Migration trends might be influenced by factors like affordability, job opportunities, and quality of life.
+As expected, in 2014, as migration fairly declined, housing prices were stable if not declining. In 2015, as it began to rise, peaking around 2017 and declining, house prices around that period also began to rise, peaking at 2018 and fairly declining.
+
+
 
 
 #### Finding 4:  Impact of urbanization on migration and housing prices
 
+```{r,fig.width=10, fig.height=4}
+# Find the top 10 counties with the highest mean of housing prices
 
-```{r}
-# Filter data to include only the top 10 states based on mean value
-s2 = clean_data|>
-# Selects rows for states in top_inflow_states  
-  filter(STATEPOSTAL %in% top_value_states$STATEPOSTAL)
+top_counties = clean_data |>
+  group_by(Y1_COUNTYNAME.x)|># Group data by county name
+  summarise(mean_value = mean(LOG_VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+# Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
 
-```
+# Filters the original data to only include top counties
+filtered_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top_counties$Y1_COUNTYNAME.x)
 
-
-
-```{r, fig.width=8, fig.height=4,echo=FALSE}
-# Graph
-# Filter data to include only the top 10 states based on mean inflow
-s1 = clean_data|>
- # Selects rows for states in top_inflow_states  
-  filter(STATEPOSTAL %in% top_inflow_states$STATEPOSTAL)
-
-# Create a box plot of LOG_MIGRATION for the top 10 states by mean inflow
-plot7 = ggplot(s1, aes(x = reorder(STATEPOSTAL, -LOG_MIGRATION), y = LOG_MIGRATION)) +
-# Adds a boxplot with light green fill  
+# Box plot for top counties 
+plot3 = ggplot(filtered_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_VALUE), y = LOG_VALUE)) +
   geom_boxplot(fill = "lightgreen") +
-#sets plot tltle  
-  labs(title = "Top 10 States by Inflow Distribution", x = "State", y = "MIGRATION (Log Transformed)") +
-# Applies a minimal theme for a clean look  
-  theme_minimal() +
-# Rotates x-axis text for better readability  
+  labs(title = "Box Plot of Housing Prices for Top 10 Counties", x = "County", y = "Housing Prices (Log Transformed)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+# Plot the top ten states based of mean of VALUE
+# Find the top 10 counties with the highest mean of inflow (migration)
+top2_counties = clean_data |>
+  group_by(Y1_COUNTYNAME.x)|># Group data by county name
+  summarise(mean_value = mean(LOG_MIGRATION, na.rm = T))|> # Calculate the mean of migration (inflow) for each county, excluding NA values
+  arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
+#Select the top 10 counties with the highest mean_value  
+  top_n(10,mean_value)
 
-# Create a box plot of LOG_MIGRATION for the top 10 states by mean value
-plot8 = ggplot(s2, aes(x = reorder(STATEPOSTAL, -LOG_VALUE), y = LOG_VALUE)) +
-# Adds a boxplot with light green fill  
+# Filters the original data to only include top counties
+filter_counties= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top2_counties$Y1_COUNTYNAME.x)
+
+# Box plot for top counties 
+plot4 = ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION), y = LOG_MIGRATION)) +
   geom_boxplot(fill = "lightblue") +
-# Adds plot title  
-  labs(title = "Top 10 States by Housing Prices Distribution", x = "State", y = "Housing Prices (Log Transformed)") +
-# Applies a minimal theme for a clean look  
-  theme_minimal() +
-# Rotates x-axis text for better readability  
+  labs(title = "Box Plot of Migration for Top 10 Counties", x = "County", y = "Migration (Log Transformed") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-grid.arrange(plot7,plot8 ,ncol=2)
-
+grid.arrange(plot3, plot4, ncol = 2)
 ```
 
 
+The boxes show the interquartile range (IQR), which is the range from the 25th percentile (bottom edge of the box) to the 75th percentile (top edge of the box).The line within each box represents the median house price for that county. Whiskers extend from the box to indicate the range of house prices within 1.5 times the IQR. Individual dots represent potential outliers that fall outside this range. 
 
-This box plot illustrates the distribution of housing for the top 10 states. Each box plot represents the spread and central tendency of the house price for each state. DC (District of Columbia) has the highest median house price with a narrow distribution, suggesting that the values are high and relatively consistent. CA (California) and MA (Massachusetts) show a wider spread, indicating significant variability in the house price variable within these states. NJ (New Jersey) has a few low outliers, showing some unusually low values compared to the rest of its distribution. HI (Hawaii) and MD (Maryland) have lower median house prices compared to other states, with relatively narrower distributions, indicating more consistent but lower values.
+Counties like Maricopa and Los Angeles show higher median housing prices, with Maricopa having the widest range. Riverside and King Counties also have relatively high prices, but their distributions are more compact.There are some notable outliers in counties like Maricopa and San Bernardino, suggesting extreme housing price variations in these areas.
 
+The migration box plot above provides a summary of the migration  for the top 10 counties.
+Los Angeles County leads with the highest median migration levels, followed by Maricopa County and San Diego County. 
+Counties like New York County and Broward County show lower median migration and a narrower range, suggesting more consistent migration numbers with fewer outliers.
 
-This box plot represents the distribution of migration for the top 10 states, providing insights into how migration varies across these states.
-DC (District of Columbia) has a higher median inflow and a smaller spread, meaning its migration inflows are relatively high and consistent with few outliers.
-NJ (New Jersey) and MA (Massachusetts) have wider distributions, indicating higher variability in migration inflows.
-AZ (Arizona) and FL (Florida) also have a wider spread, suggesting significant variation in migration inflows, including some high outliers.
-DE (Delaware), RI (Rhode Island), and HI (Hawaii) have lower median inflows and narrower ranges, indicating more consistent but lower migration numbers.
-
+The two diagrams highlight key factors in urbanization, which is brought about by the relationship between migration and housing prices. As was shown for Maricopa and Riverside Counties, rapid population inflow means a greater demand for housing and increased prices. This shows how economic opportunities are concentrated in urban areas.
+On the other hand, counties such as San Bernardino, with a relatively low housing cost but high migration, are a result of the spillover effect of urbanization. These areas likely represent the suburban areas of larger cities and thus offer relatively more affordable housing without losing the benefits of proximity to the city center.
 
 
 ```{r}
