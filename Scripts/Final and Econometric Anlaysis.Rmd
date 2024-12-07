@@ -146,16 +146,21 @@ clean_data$LOG_MIGRATION = log(clean_data$`NO_OF_INDIVIDUALS(INFLOW)` + 1)
 
 ```{r}
 # Create a scatter plot of LOG_MIGRATION vs. LOG_VALUE with a smoothing line
+
 ggplot(clean_data, aes(x=LOG_MIGRATION, y =LOG_VALUE)) +
 # Add points with low transparent  
   geom_point(alpha = 0.1)+
   labs(title = "Immigration and Housing Prices Relationship", x="Migration (Log Transformed)", y = "Housing Prices (Log Transformed)") +
 # Add a smooth line to show trend  
   geom_smooth()
+
+ggsave (filename = "scatter_graph.png")
 ```
 
 
 There is a clear positive non-linear relationship (upward-sloping pattern) between migration and housing prices. This indicates that as the number of migrants increases, housing prices also tend to increase. The points are tightly clustered around a linear trend suggesting a high correlation.
+
+
 
 
 #### Finding 2:  How does the effect on housing prices vary according to counties? (Descriptive)
@@ -211,7 +216,8 @@ plot2 = ggplot(filtered_counties, aes(x = YEAR, y = `NO_OF_INDIVIDUALS(INFLOW)`,
   labs(title = "Top 10 Counties for Migration by Year, Top 10 Counties", x = "YEAR", y = "Migration", color = "County")
 
 grid.arrange(plot1, plot2, ncol = 2)
-  
+
+ggsave(filename = "line_graph_counties.png")  
 ```
 
 
@@ -298,6 +304,7 @@ plot6 = ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group
 
 grid.arrange(plot5,plot6, ncol=2)
 
+ggsave(filename = "line_graph_states.png")
 ```
 
 
@@ -350,6 +357,8 @@ plot4 = ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION)
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 grid.arrange(plot3, plot4, ncol = 2)
+
+ggsave(filename = "box_plot_counties.png")
 ```
 
 
