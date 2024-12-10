@@ -301,31 +301,42 @@ ggplot(binned_data,aes(x=LOG_MIGRATION, y= LOG_VALUE))+
 # Plot LOG_MIGRATION over YEAR for each county, with points colored by county name
 Top_Immigration = clean_data |>
   group_by(Y1_COUNTYNAME.x) |>
-  summarise(mean_value = mean(`NO_OF_INDIVIDUALS(INFLOW)`, na.rm = T))|> # # Calculate the mean of migration for each county, excluding NA values
+  summarise(mean_value = mean(LOG_MIGRATION, na.rm = T))|>  # Calculate the mean of migration for each county, excluding NA values
   arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
 # Select the top 10 counties with the highest mean_value  
   top_n(10,mean_value)
 
 # Filters the original data to only include top counties
-filtered_counties= clean_data|>
+filtered_counties_1= clean_data|>
   filter(Y1_COUNTYNAME.x %in% Top_Immigration$Y1_COUNTYNAME.x)
+
+
+# Plot Migration over YEAR for each county, with points colored by county name
+plot2 = ggplot(filtered_counties_1, aes(x = YEAR, y = LOG_MIGRATION,
+          # Define grouping by county
+                       group = Y1_COUNTYNAME.x,
+  # Set color by county name to differentiate points by county
+                       color = Y1_COUNTYNAME.x)) +
+  #Add points to represent migration at each YEAR
+  geom_point(size = 1.5) + geom_line(size = 1.2) +
+  scale_color_viridis_d(option = "viridis") + theme_minimal() +
+  labs(title = "Top 10 Counties for Migration by Year, Top 10 Counties", x = "YEAR", y = "Migration", color = "County")
 
 
 # Find top ten counties for house prices
 top_counties_prices = clean_data |>
   group_by(Y1_COUNTYNAME.x)|># Group data by county name
-  summarise(mean_value = mean(VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
+  summarise(mean_value = mean(LOG_VALUE, na.rm = T))|> # # Calculate the mean of housing prices for each county, excluding NA values
   arrange(desc(mean_value))|> # Arrange counties in descending order of mean_value
 # Select the top 10 counties with the highest mean_value  
   top_n(10,mean_value)
 
 # Filters the original data to only include top counties
-filtered_counties= clean_data|>
-  filter(Y1_COUNTYNAME.x %in% top_counties_prices$Y1_COUNTYNAME.x) |>
-  filter(STATEPOSTAL != "GA")  # Keep only Harris County, TX
+filtered_counties_2= clean_data|>
+  filter(Y1_COUNTYNAME.x %in% top_counties_prices$Y1_COUNTYNAME.x) 
 
 # Plot Housing Prices (VALUE) over YEAR for each county, with points colored by county name
-plot1 = ggplot(filtered_counties, aes(x = YEAR, y = VALUE, 
+plot1 = ggplot(filtered_counties_2, aes(x = YEAR, y = LOG_VALUE, 
   # Define grouping by county                     
                        group = Y1_COUNTYNAME.x, 
   # Set color by county name to differentiate points by county
@@ -336,18 +347,10 @@ plot1 = ggplot(filtered_counties, aes(x = YEAR, y = VALUE,
   labs(title = "Trend of Housing Prices by Year, Top 10 Counties", x = "YEAR", y = "Housing Prices", color = "County")
 
 
-plot2 = ggplot(filtered_counties, aes(x = YEAR, y = `NO_OF_INDIVIDUALS(INFLOW)`,
-          # Define grouping by county
-                       group = Y1_COUNTYNAME.x,
-  # Set color by county name to differentiate points by county
-                       color = Y1_COUNTYNAME.x)) +
-  #Add points to represent migration at each YEAR
-  geom_point(size = 1.5) + geom_line(size = 1.2) +
-  scale_color_viridis_d(option = "viridis") + theme_minimal() +
-  labs(title = "Top 10 Counties for Migration by Year, Top 10 Counties", x = "YEAR", y = "Migration", color = "County")
 
-grid.arrange(plot1, plot2, ncol = 2)
-  
+combined_plot_1= grid.arrange(plot1, plot2, ncol = 2)
+
+ggsave(filename = "line_graph_counties.png", plot = combined_plot_1)  
 ```
 
 
@@ -451,12 +454,13 @@ plot6 = ggplot(filtered_inflow_states, aes(x = YEAR, y = mean_inflow_year, group
   scale_color_viridis_d(option = "viridis") + theme_minimal() +
   labs(title = "Top 10 States for Migration by Year", x = "YEAR", y = "Migration", color = "State")
 
-grid.arrange(plot5,plot6, ncol=2)
+combined_plot_2 =grid.arrange(plot5,plot6, ncol=2)
 
+ggsave(filename = "line_graph_states.png", plot = combined_plot_2)
 ```
 
 
-From the graph above, States like Arizona (AZ) and Florida (FL) show consistently high migration levels, peaking around 2017 before declining. Migration trends might be influenced by factors like affordability, job opportunities, and quality of life.
+From the graph above, the migration flow of states follows similar patterns. It was fairly stable in 2014, decreasing and peaking up again in 2017 with Arizona (AZ) and the District of Columbia (DC) showing consistently high migration levels, peaking around 2017 before declining. Migration trends might be influenced by affordability, job opportunities, and quality of life.
 
 The graph illustrates housing price trends. While prices generally increase across all states, some states, Arizona (AZ) has the highest and most consistent rise in housing prices, peaking in 2018, followed by California (CA), which also sees a steady increase. Other states, like Connecticut (CT), Delaware (DE), and Rhode Island (RI), exhibit slower but noticeable growth in housing prices over the years.
 
@@ -506,7 +510,9 @@ plot4 = ggplot(filter_counties, aes(x = reorder(Y1_COUNTYNAME.x, -LOG_MIGRATION)
   labs(title = "Box Plot of Migration for Top 10 Counties", x = "County", y = "Migration (Log Transformed") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-grid.arrange(plot3, plot4, ncol = 2)
+combined_plot_3 = grid.arrange(plot3, plot4, ncol = 2)
+
+ggsave(filename = "box_plot_counties.png", plot = combined_plot_3)
 ```
 
 
